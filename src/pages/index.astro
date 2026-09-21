@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../data/site';
+import { getProjects, inProgress } from '../lib/projects';
+import { stageLabel } from '../data/stages';
+
+const projects = await getProjects();
+const current = inProgress(projects);
+---
+
+<BaseLayout>
+  <h1>{SITE.author}</h1>
+  <p class="lead">Каталог проектов — от первой идеи до релиза, стадия за стадией.</p>
+
+  <section class="stack" aria-labelledby="now">
+    <h2 id="now">Сейчас в работе</h2>
+    {
+      current.length > 0 ? (
+        <ul role="list" class="stack">
+          {current.map(({ id, data }) => (
+            <li class="panel">
+              <a href={`/projects/${id}/`}>{data.title}</a>
+              <p class="meta">
+                Стадия: <span class="stage-current">{stageLabel(data.stage)}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="panel stack">
+          <p>Сайт в разработке. Проекты появятся здесь по мере готовности.</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
