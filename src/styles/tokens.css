@@ -1,0 +1,144 @@
+/* Дизайн-токены. Пропорции — золотое сечение (φ = 1,618) и ряд Фибоначчи. */
+
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    --phi: 1.618;
+
+    /* Отступы: ряд Фибоначчи, px → rem при 16 px */
+    --sp-3: 0.1875rem;
+    --sp-5: 0.3125rem;
+    --sp-8: 0.5rem;
+    --sp-13: 0.8125rem;
+    --sp-21: 1.3125rem;
+    --sp-34: 2.125rem;
+    --sp-55: 3.4375rem;
+    --sp-89: 5.5625rem;
+    --sp-144: 9rem;
+    --sp-233: 14.5625rem;
+
+    /* Кегли: шаг √φ ≈ 1,272 (два шага = φ); плавно между 360 и 1440 px */
+    --fs--1: 0.8125rem;
+    --fs-0: 1rem;
+    --fs-1: clamp(1.125rem, 1.076rem + 0.218vw, 1.272rem);
+    --fs-2: clamp(1.272rem, 1.157rem + 0.513vw, 1.618rem);
+    --fs-3: clamp(1.618rem, 1.471rem + 0.652vw, 2.058rem);
+    --fs-4: clamp(1.618rem, 1.285rem + 1.481vw, 2.618rem);
+    --fs-5: clamp(2.058rem, 1.634rem + 1.884vw, 3.33rem);
+    --fs-hero: clamp(4.236rem, 3.363rem + 3.879vw, 6.854rem);
+
+    /* Интерлиньяж */
+    --lh-text: 1.618;
+    --lh-heading: 1.272;
+    --lh-display: 1.1;
+
+    /* Контейнеры: каждый в φ раз меньше предыдущего */
+    --container-max: 99.8125rem; /* 1597 */
+    --container: 61.6875rem; /* 987 */
+    --measure: 38.125rem; /* 610 */
+    --gutter: var(--sp-21);
+
+    /* Вертикальный ритм секций */
+    --section-gap: var(--sp-89);
+
+    /* Радиусы: иерархия, а не один на всё */
+    --r-chip: 0.5rem; /* 8 */
+    --r-control: 0.8125rem; /* 13 */
+    --r-card: 1.3125rem; /* 21 */
+    --r-panel: 2.125rem; /* 34 */
+    --r-round: 999px;
+
+    /* Длительности и кривая */
+    --t-89: 89ms;
+    --t-144: 144ms;
+    --t-233: 233ms;
+    --t-377: 377ms;
+    --ease: cubic-bezier(0.382, 0, 0.236, 1);
+
+    /* Направление света: тень падает вправо-вниз. Меняется скриптом «свет за курсором». */
+    --lx: 1;
+    --ly: 1;
+
+    /* Светлая тема */
+    --surface: #e7ebf0;
+    --surface-hi: #eff2f6;
+    --surface-lo: #dde2e9;
+    --text: #262a30;
+    --text-muted: #566070;
+    --blue: #2ea6ff;
+    --blue-text: #0a66b3;
+    --fuchsia: #f0249b;
+    --fuchsia-text: #b80f75;
+    --on-accent: #16181c;
+    --shadow-dark: rgb(163 175 194 / 0.72);
+    --shadow-light: rgb(255 255 255 / 0.95);
+    --highlight: transparent;
+    --hairline: rgb(38 42 48 / 0.14);
+    --theme-color: #e7ebf0;
+    --is-dark: 0; /* 0 | 1 — для вычислений в CSS (положение ручки тумблера) */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --surface: #23262b;
+      --surface-hi: #2a2e34;
+      --surface-lo: #1e2125;
+      --text: #e6eaf0;
+      --text-muted: #a4adba;
+      --blue: #5cbbff;
+      --blue-text: #5cbbff;
+      --fuchsia: #ff5fba;
+      --fuchsia-text: #ff5fba;
+      --on-accent: #16181c;
+      --shadow-dark: rgb(0 0 0 / 0.55);
+      --shadow-light: rgb(255 255 255 / 0.065);
+      --highlight: rgb(255 255 255 / 0.05);
+      --hairline: rgb(230 234 240 / 0.16);
+      --theme-color: #23262b;
+      --is-dark: 1;
+    }
+  }
+
+  :root[data-theme='light'] {
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --surface: #23262b;
+    --surface-hi: #2a2e34;
+    --surface-lo: #1e2125;
+    --text: #e6eaf0;
+    --text-muted: #a4adba;
+    --blue: #5cbbff;
+    --blue-text: #5cbbff;
+    --fuchsia: #ff5fba;
+    --fuchsia-text: #ff5fba;
+    --on-accent: #16181c;
+    --shadow-dark: rgb(0 0 0 / 0.55);
+    --shadow-light: rgb(255 255 255 / 0.065);
+    --highlight: rgb(255 255 255 / 0.05);
+    --hairline: rgb(230 234 240 / 0.16);
+    --theme-color: #23262b;
+    --is-dark: 1;
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --gutter: var(--sp-34);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --section-gap: var(--sp-144);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    :root {
+      --gutter: var(--sp-55);
+    }
+  }
+}

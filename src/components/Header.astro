@@ -1,4 +1,5 @@
 ---
+import ThemeSwitch from './ThemeSwitch.astro';
 import { NAV, SITE } from '../data/site';
 
 const { pathname } = Astro.url;
@@ -6,20 +7,223 @@ const isCurrent = (href: string) => (href === '/' ? pathname === '/' : pathname.
 ---
 
 <header class="site-header">
-  <div class="container">
-    <a class="brand" href="/">{SITE.author}</a>
-    <nav class="nav" aria-label="Основная навигация">
+  <div class="container site-header__bar">
+    <a class="brand" href="/" aria-label={`${SITE.author} — на главную`}>
+      {SITE.author}
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="Основная навигация" data-menu>
       <ul role="list">
-        {
-          NAV.map(({ href, label }) => (
-            <li>
-              <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>
-                {label}
-              </a>
-            </li>
-          ))
-        }
+        {NAV.map(({ href, label }) => (
+          <li>
+            <a href={href} aria-current={isCurrent(href) ? 'page' : undefined}>
+              {label}
+            </a>
+          </li>
+        ))}
       </ul>
     </nav>
+
+    <div class="site-header__tools">
+      <ThemeSwitch />
+      <button
+        class="btn btn-icon menu-button"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-nav"
+        aria-label="Меню"
+        data-menu-button
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="menu-button__top" d="M5 8h14"></path>
+          <path class="menu-button__bottom" d="M5 16h14"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 </header>
+
+<script>
+  import '../scripts/menu';
+</script>
+
+<style>
+  .site-header {
+    position: relative;
+    z-index: 5;
+    padding-block: var(--sp-21);
+    padding-top: max(var(--sp-21), env(safe-area-inset-top));
+  }
+
+  .site-header__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-13) var(--sp-21);
+  }
+
+  .brand {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: var(--fs-2);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.272;
+    color: var(--text);
+    text-decoration: none;
+    padding: var(--sp-5) var(--sp-8);
+    margin-left: calc(var(--sp-8) * -1);
+    border-radius: var(--r-chip);
+  }
+
+  .site-header__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-13);
+  }
+
+  .site-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-8);
+  }
+
+  .site-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--sp-8) var(--sp-21);
+    border-radius: var(--r-control);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition:
+      box-shadow var(--t-144) var(--ease),
+      color var(--t-144) var(--ease);
+  }
+
+  /* Текущий раздел — вдавленная «пилюля»; при переходе между страницами она переезжает */
+  .site-nav a[aria-current='page'] {
+    color: var(--text);
+    view-transition-name: nav-current;
+    box-shadow:
+      inset 5px 5px 13px var(--shadow-dark),
+      inset -5px -5px 13px var(--shadow-light);
+  }
+
+  .site-nav a:active {
+    box-shadow:
+      inset 5px 5px 13px var(--shadow-dark),
+      inset -5px -5px 13px var(--shadow-light);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .brand:hover {
+      color: var(--blue-text);
+    }
+
+    .site-nav a:not([aria-current='page']):hover {
+      color: var(--blue-text);
+      box-shadow:
+        inset 2px 2px 5px var(--shadow-dark),
+        inset -2px -2px 5px var(--shadow-light);
+    }
+  }
+
+  .menu-button {
+    display: none;
+  }
+
+  .menu-button svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .menu-button path {
+    transform-origin: 12px 12px;
+    transition: transform var(--t-233) var(--ease);
+  }
+
+  .menu-button[aria-expanded='true'] .menu-button__top {
+    transform: translateY(4px) rotate(45deg);
+  }
+
+  .menu-button[aria-expanded='true'] .menu-button__bottom {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+
+  /* До 768 px навигация сворачивается в панель под шапкой. Без JS (нет класса .js) остаётся видимой. */
+  @media (max-width: 767.98px) {
+    :global(.js) .menu-button {
+      display: inline-flex;
+    }
+
+    .site-nav {
+      order: 3;
+      flex-basis: 100%;
+    }
+
+    :global(.js) .site-nav {
+      position: absolute;
+      top: 100%;
+      left: var(--gutter);
+      right: var(--gutter);
+      padding: var(--sp-13);
+      border-radius: var(--r-card);
+      background: var(--surface);
+      box-shadow:
+        13px 13px 34px var(--shadow-dark),
+        -13px -13px 34px var(--shadow-light),
+        inset 1px 1px 0 var(--highlight);
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(-8px);
+      transition:
+        opacity var(--t-233) var(--ease),
+        transform var(--t-233) var(--ease),
+        visibility 0s linear var(--t-233);
+    }
+
+    :global(.js) .site-nav[data-open] {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      transition-delay: 0s;
+    }
+
+    :global(.js) .site-nav ul {
+      flex-direction: column;
+      gap: var(--sp-5);
+    }
+
+    :global(.js) .site-nav a {
+      min-height: 3.4375rem;
+      font-size: var(--fs-1);
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .site-header {
+      padding-block: var(--sp-8);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .site-nav a[aria-current='page'] {
+      border: 1px solid Highlight;
+    }
+
+    :global(.js) .site-nav {
+      border: 1px solid CanvasText;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .site-nav a[aria-current='page'] {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+</style>

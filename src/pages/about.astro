@@ -1,10 +1,71 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import StageTiles from '../components/StageTiles.astro';
+import StageList from '../components/StageList.astro';
+import { TRACKS, TRACK_IDS } from '../data/stages';
 ---
 
-<BaseLayout title="Обо мне" description="Коротко об авторе каталога проектов.">
-  <h1>Обо мне</h1>
-  <div class="panel stack">
-    <p>Раздел готовится.</p>
+<BaseLayout title="Обо мне" description="Кто ведёт этот каталог и как в нём устроены стадии проектов.">
+  <div class="section-head">
+    <h1>Обо мне</h1>
+    <p class="lead">Меня зовут Иван. Здесь я собираю свои проекты и показываю, как они развиваются.</p>
   </div>
+
+  <section class="section" id="catalog" aria-labelledby="catalog-title">
+    <div class="section-head">
+      <h2 id="catalog-title">Как устроен каталог</h2>
+      <p>
+        Проект попадает сюда не тогда, когда он готов, а как только пройдена первая стадия. Дальше страница проекта
+        пополняется: новая стадия — новая запись в хронологии, с датой и тем, что сделано.
+      </p>
+      <p>
+        В каталог идут самостоятельные работы с результатом, который можно показать: здания и интерьеры, сайты,
+        приложения, 3D-сцены, инструменты. Разовые скрипты и учебные эксперименты сюда не попадают.
+      </p>
+    </div>
+
+    <div class="track-list">
+      {TRACK_IDS.map((track, index) => (
+        <article class:list={['golden golden-center track', { 'golden-rev': index % 2 === 1 }]}>
+          <div class:list={['track__text nm-raised panel', { 'track__text--second': index % 2 === 1 }]}>
+            <h3>{TRACKS[track].label}</h3>
+            <StageList track={track} notes />
+          </div>
+          <div class="track__tiles">
+            <StageTiles track={track} labels />
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .track-list {
+    display: grid;
+    gap: var(--sp-89);
+    margin-top: var(--sp-55);
+  }
+
+  .track__text {
+    display: grid;
+    gap: var(--sp-21);
+  }
+
+  .track__text h3 {
+    font-size: var(--fs-2);
+  }
+
+  /* В чётных рядах стороны меняются: текст уходит вправо, в широкую колонку */
+  @media (min-width: 768px) {
+    .track__text--second {
+      order: 2;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .track__tiles {
+      max-width: 23.5625rem;
+    }
+  }
+</style>

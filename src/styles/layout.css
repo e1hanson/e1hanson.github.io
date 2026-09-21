@@ -1,0 +1,113 @@
+@layer layout {
+  .container {
+    width: min(100% - 2 * var(--gutter), var(--container-max));
+    margin-inline: auto;
+  }
+
+  .container-narrow {
+    width: min(100% - 2 * var(--gutter), var(--container));
+    margin-inline: auto;
+  }
+
+  main {
+    flex: 1;
+    padding-block: var(--sp-55) var(--section-gap);
+  }
+
+  /* Ритм секций: любая секция, кроме первой на странице, отступает на шаг ритма */
+  .section:not(:first-child) {
+    margin-top: var(--section-gap);
+  }
+
+  .section-head {
+    margin-bottom: var(--sp-34);
+  }
+
+  .section-head > * + * {
+    margin-top: var(--sp-13);
+  }
+
+  .stack > * + * {
+    margin-top: var(--sp-21);
+  }
+
+  .stack-lg > * + * {
+    margin-top: var(--sp-34);
+  }
+
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-13);
+    align-items: center;
+  }
+
+  /*
+    Золотое деление: 61,8 % / 38,2 %. До 768 px — одна колонка.
+    .golden-rev меняет стороны: 38,2 % / 61,8 %.
+  */
+  .golden {
+    display: grid;
+    gap: var(--sp-34);
+    align-items: start;
+  }
+
+  @media (min-width: 768px) {
+    .golden {
+      grid-template-columns: minmax(0, 1.618fr) minmax(0, 1fr);
+      gap: var(--sp-55);
+    }
+
+    .golden-rev {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.618fr);
+    }
+
+    .golden-center {
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .golden {
+      gap: var(--sp-89);
+    }
+  }
+
+  /* Сетка карточек: число колонок определяет доступная ширина, а не брейкпоинт */
+  .card-grid {
+    display: grid;
+    gap: var(--sp-34);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+  }
+
+  @media (min-width: 1280px) {
+    .card-grid {
+      gap: var(--sp-55);
+    }
+  }
+
+  .lead {
+    font-size: var(--fs-1);
+    color: var(--text-muted);
+    max-width: var(--measure);
+  }
+
+  .muted {
+    color: var(--text-muted);
+  }
+
+  .small {
+    font-size: var(--fs--1);
+  }
+
+  /* Ландшафт с малой высотой (телефон на боку): компактнее по вертикали */
+  @media (orientation: landscape) and (max-height: 500px) {
+    main {
+      padding-block: var(--sp-21) var(--sp-55);
+    }
+
+    .section:not(:first-child) {
+      margin-top: var(--sp-55);
+    }
+  }
+}

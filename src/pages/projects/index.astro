@@ -1,34 +1,50 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getProjects, formatDate } from '../../lib/projects';
-import { TRACKS, stageLabel } from '../../data/stages';
+import ProjectCard from '../../components/ProjectCard.astro';
+import ProjectFilter from '../../components/ProjectFilter.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { getProjects } from '../../lib/projects';
 
 const projects = await getProjects();
 ---
 
 <BaseLayout title="Проекты" description="Каталог проектов Ивана с текущими стадиями разработки.">
-  <h1>Проекты</h1>
-  {
-    projects.length > 0 ? (
-      <ul role="list" class="stack">
-        {projects.map(({ id, data }) => (
-          <li class="panel stack">
-            <h2>
-              <a href={`/projects/${id}/`}>{data.title}</a>
-            </h2>
-            <p>{data.summary}</p>
-            <p class="meta">
-              {TRACKS[data.track].label} · <span class="stage-current">{stageLabel(data.stage)}</span> · обновлено{' '}
-              <time datetime={data.updated.toISOString()}>{formatDate(data.updated)}</time>
-            </p>
-          </li>
+  <div class="section-head">
+    <h1>Проекты</h1>
+    {projects.length > 0 && <p class="lead">У каждого проекта отмечена стадия, на которой он сейчас.</p>}
+  </div>
+
+  {projects.length > 0 ? (
+    <>
+      {projects.length > 1 && <ProjectFilter projects={projects} />}
+      <div class="card-grid">
+        {projects.map((project) => (
+          <ProjectCard project={project} heading="h2" />
         ))}
-      </ul>
-    ) : (
-      <div class="panel stack">
-        <h2>Проекты скоро появятся</h2>
-        <p>Каждый проект публикуется с первой стадии и обновляется по мере продвижения — от идеи до релиза.</p>
       </div>
-    )
-  }
+      <div class="filter-empty nm-pressed panel stack" data-filter-empty hidden>
+        <h2>Под такой фильтр ничего не подходит</h2>
+        <p>Снимите один из тегов или выберите другую стадию.</p>
+      </div>
+    </>
+  ) : (
+    <EmptyState title="Проектов пока нет">
+      <p>
+        Каждый проект публикуется с первой стадии — идеи или концепции — и дополняется по мере работы. Первый уже скоро.
+      </p>
+      <p>
+        <a href="/about/#catalog">Как проекты попадают в каталог</a>
+      </p>
+    </EmptyState>
+  )}
 </BaseLayout>
+
+<style>
+  .filter-empty[hidden] {
+    display: none;
+  }
+
+  .filter-empty h2 {
+    font-size: var(--fs-3);
+  }
+</style>

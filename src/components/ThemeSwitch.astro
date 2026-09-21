@@ -1,0 +1,129 @@
+---
+// Тумблер темы: вдавленная дорожка, выпуклая ручка с солнцем / луной.
+// Вид ручки задаёт CSS по токену темы --is-dark; aria-checked (для скринридеров) выставляет src/scripts/theme.ts.
+---
+
+<button
+  class="theme-switch"
+  type="button"
+  role="switch"
+  aria-checked="false"
+  aria-label="Тёмная тема"
+  data-theme-switch
+>
+  <span class="theme-switch__track">
+    <span class="theme-switch__knob">
+      <svg class="theme-switch__sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"></path>
+      </svg>
+      <svg class="theme-switch__moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2Z"></path>
+      </svg>
+    </span>
+  </span>
+</button>
+
+<script>
+  import '../scripts/theme';
+</script>
+
+<style>
+  .theme-switch {
+    /* Зона нажатия не меньше 44 px при видимой высоте 34 px */
+    display: inline-grid;
+    place-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border-radius: var(--r-round);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .theme-switch__track {
+    display: block;
+    width: 3.4375rem; /* 55 */
+    height: 2.125rem; /* 34 */
+    padding: 0.3125rem; /* 5 */
+    border-radius: var(--r-round);
+    box-shadow:
+      inset 3px 3px 8px var(--shadow-dark),
+      inset -3px -3px 8px var(--shadow-light);
+    transition: box-shadow var(--t-233) var(--ease);
+  }
+
+  .theme-switch__knob {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--surface);
+    /* Положение и цвет берутся из токена темы --is-dark, поэтому верны ещё до загрузки скрипта */
+    color: color-mix(in srgb, var(--fuchsia-text) calc(var(--is-dark) * 100%), var(--blue-text));
+    transform: translateX(calc(var(--is-dark) * 1.3125rem)); /* ход ручки — 21 px */
+    box-shadow:
+      2px 2px 5px var(--shadow-dark),
+      -2px -2px 5px var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+    transition:
+      transform var(--t-233) var(--ease),
+      color var(--t-233) var(--ease);
+  }
+
+  .theme-switch svg {
+    grid-area: 1 / 1;
+    width: 0.875rem;
+    height: 0.875rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      opacity var(--t-144) var(--ease),
+      transform var(--t-233) var(--ease);
+  }
+
+  .theme-switch__sun {
+    opacity: calc(1 - var(--is-dark));
+    transform: rotate(calc(var(--is-dark) * 55deg)) scale(calc(1 - 0.38 * var(--is-dark)));
+  }
+
+  .theme-switch__moon {
+    opacity: var(--is-dark);
+    transform: rotate(calc((1 - var(--is-dark)) * -55deg)) scale(calc(0.62 + 0.38 * var(--is-dark)));
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .theme-switch:hover .theme-switch__knob {
+      box-shadow:
+        3px 3px 8px var(--shadow-dark),
+        -3px -3px 8px var(--shadow-light),
+        0 0 0 2px color-mix(in srgb, currentColor 28%, transparent);
+    }
+  }
+
+  .theme-switch:active .theme-switch__knob {
+    box-shadow:
+      1px 1px 3px var(--shadow-dark),
+      -1px -1px 3px var(--shadow-light);
+  }
+
+  @media (forced-colors: active) {
+    .theme-switch__track {
+      border: 1px solid ButtonBorder;
+    }
+
+    .theme-switch__knob {
+      border: 1px solid ButtonText;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .theme-switch__track {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+</style>

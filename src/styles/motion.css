@@ -1,0 +1,94 @@
+/* Переходы между страницами и смена темы. Всё — прогрессивное улучшение. */
+
+@view-transition {
+  navigation: auto;
+}
+
+@layer motion {
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  main {
+    view-transition-name: main-content;
+  }
+
+  ::view-transition-old(main-content) {
+    animation: vt-out var(--t-144) var(--ease) both;
+  }
+
+  ::view-transition-new(main-content) {
+    animation: vt-in var(--t-233) var(--ease) var(--t-89) both;
+  }
+
+  @keyframes vt-out {
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /*
+    Смена темы: круговое раскрытие от переключателя (скрипт анимирует clip-path).
+    На это время именованные группы и обычные переходы отключаются, чтобы не было двойной анимации.
+  */
+  html.theme-switching::view-transition-old(root),
+  html.theme-switching::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  html.theme-switching::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  html.theme-switching::view-transition-new(root) {
+    z-index: 2;
+  }
+
+  html.theme-switching .site-header,
+  html.theme-switching main,
+  html.theme-switching .site-nav a {
+    view-transition-name: none;
+  }
+
+  html.theme-switching *,
+  html.theme-switching *::before,
+  html.theme-switching *::after {
+    transition: none !important;
+  }
+
+  /*
+    Появление при прокрутке — только там, где порядок несёт смысл (хронология, сетка проектов),
+    и только в браузерах со scroll-driven animations. Без поддержки контент просто виден.
+  */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .reveal {
+        animation: reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 38.2%;
+      }
+
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(21px);
+        }
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}

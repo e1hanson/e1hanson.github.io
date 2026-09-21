@@ -1,0 +1,79 @@
+/* Печать: чистая версия без теней, навигации и интерактива */
+
+@media print {
+  :root {
+    --surface: #fff;
+    --surface-hi: #fff;
+    --surface-lo: #fff;
+    --text: #000;
+    --text-muted: #333;
+    --blue-text: #000;
+    --fuchsia-text: #000;
+    --shadow-dark: transparent;
+    --shadow-light: transparent;
+    --highlight: transparent;
+    --hairline: #999;
+  }
+
+  html {
+    font-size: 11pt;
+  }
+
+  body {
+    display: block;
+    background: #fff;
+  }
+
+  .site-nav,
+  .site-header__tools,
+  .skip-link,
+  .project-filter,
+  .prev-next,
+  .site-footer__theme,
+  .hero__actions {
+    display: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .nm-raised,
+  .nm-pressed,
+  .nm-flat,
+  .panel,
+  .card {
+    border: 1px solid #999;
+  }
+
+  main {
+    padding-block: 0;
+  }
+
+  .section:not(:first-child) {
+    margin-top: 2rem;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  .card,
+  .timeline__item,
+  figure,
+  img {
+    break-inside: avoid;
+  }
+
+  .prose a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+}

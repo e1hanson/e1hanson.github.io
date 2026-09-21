@@ -5,7 +5,51 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="container">
-    <p>© {year} {SITE.author}</p>
+  <div class="container site-footer__bar">
+    <p>
+      © {year} {SITE.author}
+    </p>
+    <div class="site-footer__theme">
+      <p data-theme-auto-note>Тема — как на устройстве</p>
+      <button class="site-footer__reset" type="button" data-theme-reset hidden>
+        Вернуть тему устройства
+      </button>
+    </div>
   </div>
 </footer>
+
+<style>
+  .site-footer {
+    padding-block: var(--sp-34);
+    padding-bottom: max(var(--sp-34), env(safe-area-inset-bottom));
+    color: var(--text-muted);
+    font-size: var(--fs--1);
+  }
+
+  .site-footer__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-13) var(--sp-34);
+  }
+
+  .site-footer__reset {
+    min-height: 2.75rem;
+    padding-inline: var(--sp-8);
+    color: var(--blue-text);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
+    text-underline-offset: 0.22em;
+  }
+
+  .site-footer__reset[hidden] {
+    display: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .site-footer__reset:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+</style>

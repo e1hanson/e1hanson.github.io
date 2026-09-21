@@ -1,0 +1,80 @@
+---
+import type { Project } from '../lib/projects';
+
+interface Props {
+  prev?: Project;
+  next?: Project;
+}
+
+const { prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="prev-next" aria-label="Соседние проекты">
+    {prev ? (
+      <a class="prev-next__link nm-raised nm-md" href={`/projects/${prev.id}/`} rel="prev">
+        <span class="small muted">Предыдущий проект</span>
+        <span class="prev-next__title">{prev.data.title}</span>
+      </a>
+    ) : (
+      <span />
+    )}
+    {next && (
+      <a class="prev-next__link prev-next__link--next nm-raised nm-md" href={`/projects/${next.id}/`} rel="next">
+        <span class="small muted">Следующий проект</span>
+        <span class="prev-next__title">{next.data.title}</span>
+      </a>
+    )}
+  </nav>
+)}
+
+<style>
+  .prev-next {
+    display: grid;
+    gap: var(--sp-21);
+  }
+
+  .prev-next__link {
+    display: grid;
+    gap: var(--sp-5);
+    padding: var(--sp-21);
+    color: var(--text);
+    text-decoration: none;
+    transition: box-shadow var(--t-144) var(--ease);
+  }
+
+  .prev-next__title {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: var(--fs-1);
+    font-weight: 400;
+    line-height: 1.272;
+  }
+
+  .prev-next__link:active {
+    box-shadow:
+      inset 5px 5px 13px var(--shadow-dark),
+      inset -5px -5px 13px var(--shadow-light);
+  }
+
+  @media (min-width: 768px) {
+    .prev-next {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-34);
+    }
+
+    .prev-next__link--next {
+      text-align: right;
+    }
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .prev-next__link:hover {
+      --d: 8px;
+      --b: 21px;
+    }
+
+    .prev-next__link:hover .prev-next__title {
+      color: var(--blue-text);
+    }
+  }
+</style>

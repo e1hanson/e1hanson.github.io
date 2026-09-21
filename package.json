@@ -11,12 +11,22 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.3"
   },
   "allowScripts": {
     "esbuild": true
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "axe-core": "^4.13.0",
+    "prettier": "^3.9.8",
+    "prettier-plugin-astro": "^1.0.1",
+    "typescript": "^6.0.3"
   }
 }

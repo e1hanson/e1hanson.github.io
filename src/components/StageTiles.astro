@@ -1,0 +1,264 @@
+---
+// Плитка Фибоначчи — фирменный элемент: стадии проекта как квадраты 1·1·2·3·5(·8).
+// Пройденные стадии выпуклые, текущая вдавлена (фуксия), будущие плоские.
+// Спираль — путь проекта: градиент голубой → фуксия доходит до текущей стадии.
+// Элемент декоративный (aria-hidden): тот же смысл всегда продублирован текстом рядом.
+import { TILINGS, stagesOf, stageIndex, type StageId, type TrackId } from '../data/stages';
+
+interface Props {
+  track: TrackId;
+  /** Текущая стадия проекта. Без неё — режим по `mode`. */
+  current?: StageId;
+  /** showcase — все стадии выпуклые (иллюстрация); empty — все плоские (ещё ничего не начато) */
+  mode?: 'showcase' | 'empty';
+  /** Подписи стадий внутри крупных плиток */
+  labels?: boolean;
+  /** Одноразовая волна нажатий при загрузке (только для hero) */
+  animate?: boolean;
+}
+
+const { track, current, mode = 'showcase', labels = false, animate = false } = Astro.props;
+
+const tiling = TILINGS[track];
+const stages = stagesOf(track);
+const currentIndex = current ? stageIndex(track, current) : mode === 'showcase' ? stages.length - 1 : -1;
+
+const stateOf = (index: number) => {
+  if (!current) return mode === 'showcase' ? 'done' : 'future';
+  if (index < currentIndex) return 'done';
+  return index === currentIndex ? 'current' : 'future';
+};
+
+const arcPath = (from: number, to: number) => {
+  if (to < from) return '';
+  const startPoint = from === 0 ? tiling.start : tiling.tiles[from - 1].arc.to;
+  const arcs = tiling.tiles
+    .slice(from, to + 1)
+    .map(({ arc }) => `A${arc.r} ${arc.r} 0 0 0 ${arc.to[0]} ${arc.to[1]}`)
+    .join(' ');
+  return `M${startPoint[0]} ${startPoint[1]} ${arcs}`;
+};
+
+const donePath = arcPath(0, currentIndex);
+const restPath = arcPath(currentIndex + 1, stages.length - 1);
+const end = currentIndex >= 0 ? tiling.tiles[currentIndex].arc.to : tiling.start;
+const gradientId = `spiral-${track}-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<div
+  class:list={['tiles', { 'tiles--animate': animate }]}
+  style={`--cols:${tiling.cols};--rows:${tiling.rows}`}
+  data-light
+  aria-hidden="true"
+>
+  {stages.map((stage, index) => (
+    <div
+      class:list={['tile', `tile--${stateOf(index)}`]}
+      style={`grid-area:${tiling.tiles[index].area};--i:${index}`}
+      data-size={tiling.tiles[index].size}
+    >
+      <span class="tile__num tabular">{index + 1}</span>
+      {labels && tiling.tiles[index].size >= 3 && <span class="tile__label">{stage.label}</span>}
+    </div>
+  ))}
+  <svg class="tiles__spiral" viewBox={`0 0 ${tiling.cols} ${tiling.rows}`} preserveAspectRatio="none" focusable="false">
+    <defs>
+      <linearGradient
+        id={gradientId}
+        gradientUnits="userSpaceOnUse"
+        x1={tiling.start[0]}
+        y1={tiling.start[1]}
+        x2={end[0]}
+        y2={end[1]}
+      >
+        <stop offset="0" stop-color="var(--blue)"></stop>
+        <stop offset="1" stop-color="var(--fuchsia)"></stop>
+      </linearGradient>
+    </defs>
+    {restPath && <path class="tiles__rest" d={restPath} />}
+    {donePath && <path class="tiles__done" d={donePath} stroke={`url(#${gradientId})`} />}
+  </svg>
+</div>
+
+<style>
+  .tiles {
+    --tile-gap: clamp(5px, 1.6cqw, 13px);
+    container-type: inline-size;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+    aspect-ratio: var(--cols) / var(--rows);
+    width: 100%;
+  }
+
+  .tile {
+    --d: 5px;
+    --b: 13px;
+    container-type: size;
+    position: relative;
+    margin: calc(var(--tile-gap) / 2);
+    /* Радиус в процентах от самой плитки: все квадраты подобны друг другу, как и положено в ряду Фибоначчи */
+    border-radius: 13%;
+    background: var(--surface);
+    transition: box-shadow var(--t-144) var(--ease);
+  }
+
+  .tile[data-size='1'],
+  .tile[data-size='2'] {
+    --d: 3px;
+    --b: 8px;
+  }
+
+  .tile[data-size='8'] {
+    --d: 8px;
+    --b: 21px;
+  }
+
+  .tile--done {
+    box-shadow:
+      calc(var(--lx) * var(--d)) calc(var(--ly) * var(--d)) var(--b) var(--shadow-dark),
+      calc(var(--lx) * var(--d) * -1) calc(var(--ly) * var(--d) * -1) var(--b) var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .tile--current {
+    box-shadow:
+      inset calc(var(--lx) * var(--d)) calc(var(--ly) * var(--d)) var(--b) var(--shadow-dark),
+      inset calc(var(--lx) * var(--d) * -1) calc(var(--ly) * var(--d) * -1) var(--b) var(--shadow-light),
+      inset 0 0 0 2px color-mix(in srgb, var(--fuchsia) 62%, transparent);
+  }
+
+  .tile--future {
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+
+  .tile__num {
+    position: absolute;
+    left: 12cqmin;
+    top: 8cqmin;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 200;
+    font-size: clamp(0.5rem, 30cqmin, 3.33rem);
+    line-height: 1;
+    color: var(--text-muted);
+  }
+
+  .tile--current .tile__num {
+    color: var(--fuchsia-text);
+    font-weight: 400;
+  }
+
+  .tile[data-size='1'] .tile__num {
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    font-size: clamp(0.5rem, 46cqmin, 1rem);
+  }
+
+  .tile__label {
+    display: none;
+    position: absolute;
+    left: 12cqmin;
+    right: 8cqmin;
+    bottom: 10cqmin;
+    font-size: var(--fs--1);
+    line-height: 1.272;
+    color: var(--text-muted);
+  }
+
+  @container (min-width: 6.5rem) {
+    .tile__label {
+      display: block;
+    }
+  }
+
+  .tiles__spiral {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    fill: none;
+  }
+
+  .tiles__spiral path {
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+  }
+
+  .tiles__done {
+    stroke-width: 3px;
+  }
+
+  .tiles__rest {
+    stroke: var(--hairline);
+    stroke-width: 1.5px;
+    stroke-dasharray: 3 5;
+  }
+
+  /* Единственная «самостоятельная» анимация на сайте: стадии по очереди нажимаются и отпускаются */
+  @media (prefers-reduced-motion: no-preference) {
+    .tiles--animate .tile--done {
+      animation: tile-press var(--t-377) var(--ease) calc(var(--i) * var(--t-144) + var(--t-377)) both;
+    }
+
+    .tiles--animate .tiles__done {
+      animation: spiral-in 610ms var(--ease) 1220ms both;
+    }
+  }
+
+  @keyframes tile-press {
+    0%,
+    100% {
+      box-shadow:
+        var(--d) var(--d) var(--b) var(--shadow-dark),
+        calc(var(--d) * -1) calc(var(--d) * -1) var(--b) var(--shadow-light),
+        inset 1px 1px 0 var(--highlight);
+    }
+    50% {
+      box-shadow:
+        inset var(--d) var(--d) var(--b) var(--shadow-dark),
+        inset calc(var(--d) * -1) calc(var(--d) * -1) var(--b) var(--shadow-light),
+        inset 0 0 0 0 transparent;
+    }
+  }
+
+  @keyframes spiral-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .tile {
+      border: 1px solid CanvasText;
+    }
+
+    .tile--current {
+      border: 3px solid Highlight;
+    }
+
+    .tiles__done {
+      stroke: Highlight;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .tile {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+
+  @media print {
+    .tile {
+      border: 1px solid #999;
+    }
+
+    .tile--current {
+      border: 2px solid #000;
+    }
+  }
+</style>

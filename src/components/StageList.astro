@@ -1,0 +1,134 @@
+---
+// Текстовый список стадий — смысловая пара к декоративной плитке StageTiles.
+// Нумерация оправдана: стадии — настоящая последовательность.
+import { stagesOf, stageIndex, type StageId, type TrackId } from '../data/stages';
+import { formatDate } from '../lib/projects';
+
+interface Props {
+  track: TrackId;
+  current?: StageId;
+  /** Даты прохождения стадий из хронологии проекта */
+  dates?: Partial<Record<StageId, Date>>;
+  /** Показывать пояснение к каждой стадии */
+  notes?: boolean;
+}
+
+const { track, current, dates = {}, notes = false } = Astro.props;
+const stages = stagesOf(track);
+const currentIndex = current ? stageIndex(track, current) : -1;
+
+const stateOf = (index: number) => {
+  if (!current) return 'plain';
+  if (index < currentIndex) return 'done';
+  return index === currentIndex ? 'current' : 'future';
+};
+const stateText = { done: 'пройдена', current: 'сейчас', future: 'впереди', plain: '' } as const;
+---
+
+<ol class="stage-list" role="list">
+  {stages.map((stage, index) => {
+    const state = stateOf(index);
+    const date = dates[stage.id as StageId];
+    return (
+      <li class:list={['stage-list__item', `is-${state}`]} aria-current={state === 'current' ? 'step' : undefined}>
+        <span class="stage-list__num tabular" aria-hidden="true">
+          {index + 1}
+        </span>
+        <div class="stage-list__text">
+          <p class="stage-list__label">
+            {stage.label}
+            {state !== 'plain' && <span class="visually-hidden"> — {stateText[state]}</span>}
+          </p>
+          {notes && <p class="small muted">{stage.note}</p>}
+          {date && (
+            <p class="small muted">
+              <time datetime={date.toISOString().slice(0, 10)}>{formatDate(date)}</time>
+            </p>
+          )}
+        </div>
+      </li>
+    );
+  })}
+</ol>
+
+<style>
+  .stage-list {
+    display: grid;
+    gap: var(--sp-13);
+  }
+
+  .stage-list__item {
+    display: grid;
+    grid-template-columns: 2.125rem minmax(0, 1fr);
+    gap: var(--sp-13);
+    align-items: start;
+  }
+
+  .stage-list__num {
+    display: grid;
+    place-items: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-radius: var(--r-chip);
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 300;
+    color: var(--text-muted);
+  }
+
+  .stage-list__text {
+    padding-top: 0.25rem;
+  }
+
+  .stage-list__label {
+    font-weight: 500;
+  }
+
+  /* Те же состояния, что у плитки: пройдена — выпуклая, текущая — вдавлена, впереди — плоская */
+  .is-plain .stage-list__num,
+  .is-done .stage-list__num {
+    box-shadow:
+      3px 3px 8px var(--shadow-dark),
+      -3px -3px 8px var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .is-current .stage-list__num {
+    color: var(--fuchsia-text);
+    font-weight: 500;
+    box-shadow:
+      inset 3px 3px 8px var(--shadow-dark),
+      inset -3px -3px 8px var(--shadow-light),
+      inset 0 0 0 2px color-mix(in srgb, var(--fuchsia) 62%, transparent);
+  }
+
+  .is-current .stage-list__label {
+    color: var(--fuchsia-text);
+    font-weight: 600;
+  }
+
+  .is-future .stage-list__num {
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+
+  .is-future .stage-list__label {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  @media (forced-colors: active) {
+    .stage-list__num {
+      border: 1px solid CanvasText;
+    }
+
+    .is-current .stage-list__num {
+      border: 2px solid Highlight;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .stage-list__num {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+</style>

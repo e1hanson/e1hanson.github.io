@@ -1,0 +1,390 @@
+---
+// Служебная витрина дизайн-системы: токены и компоненты в текущей теме. Не индексируется, в меню не входит.
+import { Font } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StageTiles from '../components/StageTiles.astro';
+import StageList from '../components/StageList.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Timeline from '../components/Timeline.astro';
+import EmptyState from '../components/EmptyState.astro';
+import ThemeSwitch from '../components/ThemeSwitch.astro';
+
+// Витрине нужны и черновики: демонстрационные записи существуют только как черновики
+const demos = (await getCollection('projects')).filter(({ id }) => id.startsWith('demo-'));
+const withTimeline = demos.find(({ data }) => data.timeline.length > 2) ?? demos[0];
+
+const colors = [
+  { token: '--surface', role: 'Поверхность' },
+  { token: '--surface-hi', role: 'Выпуклость, свет' },
+  { token: '--surface-lo', role: 'Вогнутость, тень' },
+  { token: '--text', role: 'Текст' },
+  { token: '--text-muted', role: 'Приглушённый текст' },
+  { token: '--blue', role: 'Голубой: заливки' },
+  { token: '--blue-text', role: 'Голубой: текст, фокус' },
+  { token: '--fuchsia', role: 'Фуксия: заливки' },
+  { token: '--fuchsia-text', role: 'Фуксия: «сейчас»' },
+];
+
+const spacing = [3, 5, 8, 13, 21, 34, 55, 89, 144, 233];
+
+const typeScale = [
+  { token: '--fs-hero', label: 'Иван', display: true, weight: 200 },
+  { token: '--fs-5', label: 'Заголовок страницы', display: true, weight: 300 },
+  { token: '--fs-4', label: 'Заголовок секции', display: true, weight: 300 },
+  { token: '--fs-3', label: 'Крупный подзаголовок', display: true, weight: 300 },
+  { token: '--fs-2', label: 'Заголовок карточки', display: true, weight: 400 },
+  { token: '--fs-1', label: 'Вводный абзац страницы', display: false, weight: 400 },
+  {
+    token: '--fs-0',
+    label: 'Основной текст: каждый проект появляется здесь с первой стадии.',
+    display: false,
+    weight: 400,
+  },
+  { token: '--fs--1', label: 'Подписи, даты, чипы', display: false, weight: 400 },
+];
+
+const radii = [
+  { token: '--r-chip', label: 'Чип — 8' },
+  { token: '--r-control', label: 'Контрол — 13' },
+  { token: '--r-card', label: 'Карточка — 21' },
+  { token: '--r-panel', label: 'Панель — 34' },
+];
+
+const volumes = [
+  { cls: 'nm-raised nm-sm', label: 'Выпуклый 3/8' },
+  { cls: 'nm-raised nm-md', label: 'Выпуклый 5/13' },
+  { cls: 'nm-raised', label: 'Выпуклый 8/21' },
+  { cls: 'nm-raised nm-lg', label: 'Выпуклый 13/34' },
+  { cls: 'nm-pressed nm-md', label: 'Вдавленный 5/13' },
+  { cls: 'nm-pressed', label: 'Вдавленный 8/21' },
+  { cls: 'nm-convex', label: 'Выпуклая линза' },
+  { cls: 'nm-concave', label: 'Вогнутая линза' },
+  { cls: 'nm-flat', label: 'Плоский' },
+];
+
+const pairs = [
+  { name: 'Geologica + Onest — выбрано', display: '--font-display', text: '--font-text', weight: 300 },
+  { name: 'Unbounded + Onest', display: '--font-alt-display', text: '--font-text', weight: 300 },
+  { name: 'Manrope, одна гарнитура', display: '--font-alt-text', text: '--font-alt-text', weight: 300 },
+];
+---
+
+<BaseLayout title="Стайлгайд" description="Служебная витрина дизайн-системы сайта." noindex>
+  <Fragment slot="head">
+    <Font cssVariable="--font-alt-display" />
+    <Font cssVariable="--font-alt-text" />
+  </Fragment>
+
+  <div class="section-head">
+    <h1>Стайлгайд</h1>
+    <p class="lead">Токены и компоненты сайта в текущей теме. Переключите тему — и проверьте то же самое во второй.</p>
+    <ThemeSwitch />
+  </div>
+
+  <section class="section" aria-labelledby="sg-colors">
+    <div class="section-head">
+      <h2 id="sg-colors">Цвет</h2>
+    </div>
+    <ul class="swatches" role="list">
+      {colors.map(({ token, role }) => (
+        <li class="swatch nm-raised nm-md">
+          <span class="swatch__chip" style={`background: var(${token})`} />
+          <span class="swatch__role">{role}</span>
+          <code class="small muted">{token}</code>
+        </li>
+      ))}
+    </ul>
+    <p class="muted sg-note">
+      Правило: голубой — всё интерактивное, фуксия — «сейчас» (текущая стадия), градиент между ними — только путь
+      проекта.
+    </p>
+  </section>
+
+  <section class="section" aria-labelledby="sg-type">
+    <div class="section-head">
+      <h2 id="sg-type">Типографика</h2>
+      <p class="muted">
+        Шаг шкалы — √φ ≈ 1,272. Курсива нет: <em>смысловое выделение</em> — насыщенностью.
+      </p>
+    </div>
+    <ul class="type-scale" role="list">
+      {typeScale.map(({ token, label, display, weight }) => (
+        <li>
+          <code class="small muted">{token}</code>
+          <span
+            style={`font-size: var(${token}); font-weight: ${weight}; font-family: var(${display ? '--font-display' : '--font-text'}), sans-serif; line-height: ${display ? 1.1 : 1.618}; letter-spacing: ${display ? '-0.02em' : '0'}`}
+          >
+            {label}
+          </span>
+        </li>
+      ))}
+    </ul>
+
+    <h3 class="sg-sub">Сравнение гарнитур</h3>
+    <div class="pairs">
+      {pairs.map(({ name, display, text, weight }) => (
+        <article class="pair nm-raised panel">
+          <p class="small muted">{name}</p>
+          <p class="pair__display" style={`font-family: var(${display}), sans-serif; font-weight: ${weight}`}>
+            Рабочая документация
+          </p>
+          <p style={`font-family: var(${text}), sans-serif`}>
+            Проект попадает в каталог, как только пройдена первая стадия. Дальше страница пополняется: новая стадия —
+            новая запись в хронологии, 21 сентября 2026 г.
+          </p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sg-space">
+    <div class="section-head">
+      <h2 id="sg-space">Отступы и радиусы</h2>
+      <p class="muted">Ряд Фибоначчи: соседние значения относятся как φ.</p>
+    </div>
+    <ul class="spacing" role="list">
+      {spacing.map((value) => (
+        <li>
+          <code class="small muted tabular">{value}</code>
+          <span class="spacing__bar" style={`width: ${value / 16}rem`} />
+        </li>
+      ))}
+    </ul>
+    <ul class="radii" role="list">
+      {radii.map(({ token, label }) => (
+        <li class="nm-raised nm-md" style={`border-radius: var(${token})`}>
+          <span class="small">{label}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="sg-volume">
+    <div class="section-head">
+      <h2 id="sg-volume">Объём</h2>
+      <p class="muted">
+        Выпуклое можно нажать, вдавленное — выбрано или текущее, плоское — просто содержание. Свет — слева сверху;
+        наведите курсор на плитку стадий ниже, и источник света пойдёт за ним.
+      </p>
+    </div>
+    <ul class="volumes" role="list">
+      {volumes.map(({ cls, label }) => (
+        <li class={cls}>
+          <span class="small">{label}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="sg-controls">
+    <div class="section-head">
+      <h2 id="sg-controls">Контролы</h2>
+    </div>
+    <div class="stack-lg">
+      <div class="cluster sg-row">
+        <a class="btn btn-primary" href="#sg-controls">
+          Основная
+        </a>
+        <a class="btn" href="#sg-controls">
+          Вторичная
+        </a>
+        <button class="btn" type="button" aria-pressed="true">
+          Нажата
+        </button>
+        <button class="btn" type="button" disabled>
+          Недоступна
+        </button>
+        <button class="btn btn-icon" type="button" aria-label="Пример кнопки-иконки">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="cluster sg-row">
+        <span class="chip chip-now">Текущая стадия</span>
+        <span class="chip">Дорожка</span>
+        <span class="chip">тег</span>
+        <button class="chip" type="button" aria-pressed="false">
+          Тег-фильтр
+        </button>
+        <button class="chip" type="button" aria-pressed="true">
+          Тег-фильтр выбран
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sg-stages">
+    <div class="section-head">
+      <h2 id="sg-stages">Стадии</h2>
+      <p class="muted">Плитка Фибоначчи декоративна и всегда идёт в паре с текстовым списком.</p>
+    </div>
+    <div class="stage-demo">
+      <div class="stack">
+        <StageTiles track="digital" current="development" labels />
+        <StageList track="digital" current="development" />
+      </div>
+      <div class="stack">
+        <StageTiles track="architecture" current="sketch" labels />
+        <StageList track="architecture" current="sketch" />
+      </div>
+      <div class="stack">
+        <StageTiles track="architecture" mode="empty" />
+        <p class="small muted">Ничего не начато — пустое состояние</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="sg-cards">
+    <div class="section-head">
+      <h2 id="sg-cards">Карточки проектов</h2>
+    </div>
+    <div class="card-grid">
+      {demos.map((project) => (
+        <ProjectCard project={project} heading="h3" inert />
+      ))}
+    </div>
+  </section>
+
+  {withTimeline && (
+    <section class="section" aria-labelledby="sg-timeline">
+      <div class="section-head">
+        <h2 id="sg-timeline">Хронология</h2>
+      </div>
+      <Timeline items={withTimeline.data.timeline} current={withTimeline.data.stage} />
+    </section>
+  )}
+
+  <section class="section" aria-labelledby="sg-empty">
+    <div class="section-head">
+      <h2 id="sg-empty">Пустое состояние</h2>
+    </div>
+    <EmptyState title="Проектов пока нет" heading="h3">
+      <p>Пустой экран — приглашение, а не ошибка: он объясняет, что здесь появится и когда.</p>
+    </EmptyState>
+  </section>
+</BaseLayout>
+
+<style>
+  .sg-note {
+    margin-top: var(--sp-34);
+  }
+
+  .sg-sub {
+    margin-top: var(--sp-55);
+    margin-bottom: var(--sp-21);
+  }
+
+  .sg-row {
+    gap: var(--sp-21);
+  }
+
+  .swatches {
+    display: grid;
+    gap: var(--sp-21);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  }
+
+  .swatch {
+    display: grid;
+    gap: var(--sp-5);
+    padding: var(--sp-13);
+  }
+
+  .swatch__chip {
+    display: block;
+    aspect-ratio: 1.618 / 1;
+    border-radius: var(--r-control);
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+
+  .swatch__role {
+    margin-top: var(--sp-8);
+    font-weight: 500;
+  }
+
+  .type-scale {
+    display: grid;
+    gap: var(--sp-21);
+  }
+
+  .type-scale li {
+    display: grid;
+    gap: var(--sp-5);
+    overflow-wrap: anywhere;
+  }
+
+  .pairs {
+    display: grid;
+    gap: var(--sp-34);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+
+  .pair {
+    display: grid;
+    gap: var(--sp-13);
+    align-content: start;
+  }
+
+  .pair__display {
+    font-size: var(--fs-3);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+
+  .spacing {
+    display: grid;
+    gap: var(--sp-8);
+  }
+
+  .spacing li {
+    display: grid;
+    grid-template-columns: 2.125rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sp-13);
+  }
+
+  .spacing__bar {
+    display: block;
+    height: var(--sp-13);
+    max-width: 100%;
+    border-radius: var(--r-round);
+    background: linear-gradient(90deg, var(--blue), var(--fuchsia));
+  }
+
+  .radii,
+  .volumes {
+    display: grid;
+    gap: var(--sp-34);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+  }
+
+  .radii {
+    margin-top: var(--sp-55);
+  }
+
+  .radii li,
+  .volumes li {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1.618 / 1;
+    padding: var(--sp-13);
+    text-align: center;
+  }
+
+  .stage-demo {
+    display: grid;
+    gap: var(--sp-55);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    align-items: start;
+  }
+</style>

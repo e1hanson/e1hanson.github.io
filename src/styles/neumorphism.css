@@ -1,0 +1,127 @@
+/*
+  Примитивы неоморфизма. Объём кодирует смысл:
+  raised  — выпуклое: можно нажать или это самостоятельный объект;
+  pressed — вдавленное: выбрано, текущее, поле ввода;
+  flat    — плоское: будущее / неактивное, только волосяной контур.
+
+  Тень строится в самом классе (а не в токене на :root), чтобы --lx / --ly,
+  заданные на элементе скриптом «свет за курсором», действовали на его тень.
+*/
+
+@layer neumorphism {
+  .nm-raised,
+  .nm-pressed,
+  .nm-flat,
+  .nm-convex,
+  .nm-concave {
+    --d: 8px; /* смещение */
+    --b: 21px; /* размытие = смещение × φ² */
+    background: var(--surface);
+    border-radius: var(--r-card);
+  }
+
+  .nm-raised,
+  .nm-convex {
+    box-shadow:
+      calc(var(--lx) * var(--d)) calc(var(--ly) * var(--d)) var(--b) var(--shadow-dark),
+      calc(var(--lx) * var(--d) * -1) calc(var(--ly) * var(--d) * -1) var(--b) var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .nm-pressed,
+  .nm-concave {
+    box-shadow:
+      inset calc(var(--lx) * var(--d)) calc(var(--ly) * var(--d)) var(--b) var(--shadow-dark),
+      inset calc(var(--lx) * var(--d) * -1) calc(var(--ly) * var(--d) * -1) var(--b) var(--shadow-light);
+  }
+
+  .nm-flat {
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+
+  .nm-convex {
+    background: linear-gradient(135deg, var(--surface-hi), var(--surface-lo));
+  }
+
+  .nm-concave {
+    background: linear-gradient(135deg, var(--surface-lo), var(--surface-hi));
+  }
+
+  /* Уровни: пары Фибоначчи «смещение / размытие» */
+  .nm-sm {
+    --d: 3px;
+    --b: 8px;
+  }
+
+  .nm-md {
+    --d: 5px;
+    --b: 13px;
+  }
+
+  .nm-lg {
+    --d: 13px;
+    --b: 34px;
+  }
+
+  /*
+    Подъём при наведении: вместо анимации box-shadow — готовая тень уровнем выше
+    на псевдоэлементе, меняется только её прозрачность.
+  */
+  .nm-lift {
+    position: relative;
+    transition: transform var(--t-233) var(--ease);
+  }
+
+  .nm-lift::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    box-shadow:
+      calc(var(--lx) * 13px) calc(var(--ly) * 13px) 34px var(--shadow-dark),
+      calc(var(--lx) * -13px) calc(var(--ly) * -13px) 34px var(--shadow-light);
+    opacity: 0;
+    transition: opacity var(--t-233) var(--ease);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nm-lift:hover,
+    .nm-lift:focus-within {
+      transform: translateY(-3px);
+    }
+
+    .nm-lift:hover::before,
+    .nm-lift:focus-within::before {
+      opacity: 1;
+    }
+  }
+
+  /* Повышенный контраст: к теням добавляются явные границы */
+  @media (prefers-contrast: more) {
+    .nm-raised,
+    .nm-pressed,
+    .nm-flat,
+    .nm-convex,
+    .nm-concave {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+
+  /* Режим принудительных цветов: тени отключены системой — остаются границы */
+  @media (forced-colors: active) {
+    .nm-raised,
+    .nm-pressed,
+    .nm-flat,
+    .nm-convex,
+    .nm-concave {
+      border: 1px solid CanvasText;
+    }
+
+    .nm-pressed {
+      border-color: Highlight;
+    }
+  }
+}

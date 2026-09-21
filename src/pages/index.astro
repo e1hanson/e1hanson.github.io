@@ -1,36 +1,158 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import StageTiles from '../components/StageTiles.astro';
+import StageList from '../components/StageList.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import EmptyState from '../components/EmptyState.astro';
 import { SITE } from '../data/site';
+import { TRACKS, TRACK_IDS } from '../data/stages';
 import { getProjects, inProgress } from '../lib/projects';
-import { stageLabel } from '../data/stages';
 
 const projects = await getProjects();
 const current = inProgress(projects);
+const featured = projects.filter((project) => project.data.featured && !current.includes(project));
 ---
 
 <BaseLayout>
-  <h1>{SITE.author}</h1>
-  <p class="lead">Каталог проектов — от первой идеи до релиза, стадия за стадией.</p>
+  <section class="hero golden golden-center">
+    <div class="hero__text">
+      <h1 class="hero__name">{SITE.author}</h1>
+      <p class="lead">
+        Каталог моих проектов. Каждый появляется здесь с первой стадии и обновляется, пока не будет готов.
+      </p>
+      <div class="cluster hero__actions">
+        <a class="btn btn-primary" href="/projects/">
+          Смотреть проекты
+        </a>
+        <a class="btn" href="/about/#catalog">
+          Как устроен каталог
+        </a>
+      </div>
+    </div>
+    <figure class="hero__visual">
+      <StageTiles track="digital" animate />
+      <figcaption class="small muted">
+        Проект растёт как ряд Фибоначчи: шесть стадий — шесть квадратов, вместе — золотой прямоугольник.
+      </figcaption>
+    </figure>
+  </section>
 
-  <section class="stack" aria-labelledby="now">
-    <h2 id="now">Сейчас в работе</h2>
-    {
-      current.length > 0 ? (
-        <ul role="list" class="stack">
-          {current.map(({ id, data }) => (
-            <li class="panel">
-              <a href={`/projects/${id}/`}>{data.title}</a>
-              <p class="meta">
-                Стадия: <span class="stage-current">{stageLabel(data.stage)}</span>
-              </p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div class="panel stack">
-          <p>Сайт в разработке. Проекты появятся здесь по мере готовности.</p>
+  <section class="section" aria-labelledby="now">
+    <div class="section-head">
+      <h2 id="now">Сейчас в работе</h2>
+    </div>
+    {current.length > 0 ? (
+      <div class="card-grid">
+        {current.map((project) => (
+          <ProjectCard project={project} heading="h3" />
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="Пока ничего не начато" heading="h3">
+        <p>Первый проект появится здесь, как только пройдёт первую стадию — идею или концепцию.</p>
+        <p>
+          <a href="/about/#catalog">Как проекты попадают в каталог</a>
+        </p>
+      </EmptyState>
+    )}
+  </section>
+
+  {featured.length > 0 && (
+    <section class="section" aria-labelledby="featured">
+      <div class="section-head">
+        <h2 id="featured">Готовые проекты</h2>
+      </div>
+      <div class="card-grid">
+        {featured.map((project) => (
+          <ProjectCard project={project} heading="h3" />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="section golden golden-rev" aria-labelledby="tracks">
+    <div class="section-head">
+      <h2 id="tracks">Две дорожки стадий</h2>
+      <p class="muted">
+        У цифровых проектов и у зданий с интерьерами путь разный, поэтому и стадии у них свои. На странице каждого
+        проекта видно, какая стадия идёт сейчас и что сделано на предыдущих.
+      </p>
+    </div>
+    <div class="tracks">
+      {TRACK_IDS.map((track) => (
+        <div class="tracks__item nm-raised panel">
+          <h3>{TRACKS[track].label}</h3>
+          <StageList track={track} />
         </div>
-      )
-    }
+      ))}
+    </div>
   </section>
 </BaseLayout>
+
+<style>
+  .hero {
+    min-height: min(61.8svh, 46rem);
+  }
+
+  .hero__text > * + * {
+    margin-top: var(--sp-21);
+  }
+
+  /* Имя — типографический объект: очень крупно и очень тонко, контрапункт мягким объёмам */
+  .hero__name {
+    font-size: var(--fs-hero);
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    margin-left: -0.05em;
+  }
+
+  .hero__actions {
+    gap: var(--sp-21);
+    margin-top: var(--sp-34);
+  }
+
+  /* grid + gap, а не «> * + *»: корень дочернего компонента не несёт scope-атрибут страницы */
+  .hero__visual {
+    display: grid;
+    gap: var(--sp-21);
+  }
+
+  .tracks {
+    display: grid;
+    gap: var(--sp-34);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  }
+
+  .tracks__item {
+    display: grid;
+    gap: var(--sp-21);
+    align-content: start;
+  }
+
+  .tracks__item h3 {
+    font-size: var(--fs-1);
+    font-weight: 500;
+  }
+
+  @media (max-width: 767.98px) {
+    .hero {
+      min-height: 0;
+    }
+
+    /* На узком экране плитка идёт после текста и не занимает весь экран */
+    .hero__visual {
+      max-width: 23.5625rem;
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .hero {
+      min-height: 0;
+    }
+
+    .hero__name {
+      font-size: var(--fs-5);
+    }
+  }
+</style>

@@ -4,7 +4,7 @@ import { z } from 'astro/zod';
 import { STAGE_IDS, TRACK_IDS, stageBelongsTo } from './data/stages';
 
 // Пустая строка в ссылке равна её отсутствию — так удобнее заполнять шаблон записи.
-const optionalUrl = z.union([z.string().url(), z.literal('')]).optional();
+const optionalUrl = z.union([z.url(), z.literal('')]).optional();
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/index.md', base: './src/content/projects' }),

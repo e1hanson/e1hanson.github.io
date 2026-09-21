@@ -1,0 +1,145 @@
+---
+// Карточка проекта. Обложка — золотой прямоугольник; если картинки нет,
+// обложкой служит плитка стадий проекта, так что карточки различаются по состоянию.
+import { Image } from 'astro:assets';
+import StageTiles from './StageTiles.astro';
+import { TRACKS, stageLabel } from '../data/stages';
+import { formatDate, type Project } from '../lib/projects';
+
+interface Props {
+  project: Project;
+  /** Уровень заголовка: на главной карточки стоят под h2, в каталоге — под h1 */
+  heading?: 'h2' | 'h3';
+  /** Без ссылки — для витрины в стайлгайде, где страниц черновиков может не быть */
+  inert?: boolean;
+}
+
+const { project, heading: Heading = 'h3', inert = false } = Astro.props;
+const { id, data } = project;
+---
+
+<article
+  class="card nm-raised nm-lift reveal"
+  data-project
+  data-light
+  data-track={data.track}
+  data-stage={data.stage}
+  data-tags={data.tags.join('|')}
+>
+  <div class="card__cover">
+    {data.cover ? (
+      <Image
+        src={data.cover}
+        alt=""
+        widths={[377, 610, 987]}
+        sizes="(min-width: 1280px) 30vw, (min-width: 768px) 46vw, 92vw"
+        loading="lazy"
+      />
+    ) : (
+      <StageTiles track={data.track} current={data.stage} />
+    )}
+  </div>
+  <div class="card__body">
+    <Heading class="card__title">{inert ? data.title : <a href={`/projects/${id}/`}>{data.title}</a>}</Heading>
+    <p class="card__summary">{data.summary}</p>
+    <ul class="cluster card__chips" role="list">
+      <li class="chip chip-now">{stageLabel(data.stage)}</li>
+      <li class="chip">{TRACKS[data.track].label}</li>
+    </ul>
+    <p class="small muted">
+      Обновлён <time datetime={data.updated.toISOString().slice(0, 10)}>{formatDate(data.updated)}</time>
+    </p>
+  </div>
+</article>
+
+<style>
+  .card {
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    padding: var(--sp-13);
+    border-radius: var(--r-panel);
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  /* Обложка — «окно», вдавленное в карточку */
+  .card__cover {
+    aspect-ratio: 1.618 / 1;
+    overflow: hidden;
+    padding: var(--sp-8);
+    border-radius: var(--r-card);
+    box-shadow:
+      inset 3px 3px 8px var(--shadow-dark),
+      inset -3px -3px 8px var(--shadow-light);
+  }
+
+  .card__cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--r-control);
+    transition: transform var(--t-377) var(--ease);
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-13);
+    flex: 1;
+    padding: var(--sp-21) var(--sp-13) var(--sp-13);
+  }
+
+  .card__title {
+    font-size: var(--fs-2);
+    font-weight: 400;
+  }
+
+  /* Вся карточка — одна ссылка: зона нажатия растянута псевдоэлементом */
+  .card__title a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-panel);
+  }
+
+  .card__title a:focus-visible {
+    outline: none;
+  }
+
+  .card__title a:focus-visible::after {
+    outline: 3px solid var(--blue-text);
+    outline-offset: 3px;
+  }
+
+  .card__summary {
+    color: var(--text-muted);
+  }
+
+  .card__chips {
+    margin-top: auto;
+    gap: var(--sp-8);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover .card__title a {
+      color: var(--blue-text);
+    }
+
+    .card:hover .card__cover :global(img) {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Нажатие пальцем: карточка слегка «утапливается» */
+  .card:active {
+    transform: scale(0.99);
+  }
+</style>

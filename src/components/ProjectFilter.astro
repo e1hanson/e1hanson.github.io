@@ -1,0 +1,243 @@
+---
+// Фильтр каталога: дорожка (сегменты), стадия (список), теги (чипы-переключатели).
+// Без JS форма скрыта, каталог виден целиком.
+import { TRACKS, TRACK_IDS, stagesOf } from '../data/stages';
+import type { Project } from '../lib/projects';
+
+interface Props {
+  projects: Project[];
+}
+
+const { projects } = Astro.props;
+
+const usedTracks = TRACK_IDS.filter((track) => projects.some(({ data }) => data.track === track));
+const usedStages = new Set(projects.map(({ data }) => data.stage));
+const tags = [...new Set(projects.flatMap(({ data }) => data.tags))].sort((a, b) => a.localeCompare(b, 'ru'));
+---
+
+<form class="project-filter" data-project-filter aria-label="Фильтр проектов">
+  {usedTracks.length > 1 && (
+    <fieldset class="segments">
+      <legend class="visually-hidden">Дорожка</legend>
+      <div class="segments__well">
+        <label class="segments__option">
+          <input class="visually-hidden" type="radio" name="track" value="all" checked />
+          <span>Все</span>
+        </label>
+        {usedTracks.map((track) => (
+          <label class="segments__option">
+            <input class="visually-hidden" type="radio" name="track" value={track} />
+            <span>{TRACKS[track].label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  )}
+
+  <label class="select">
+    <span class="visually-hidden">Стадия</span>
+    <select name="stage">
+      <option value="all">Любая стадия</option>
+      {usedTracks.map((track) => (
+        <optgroup label={TRACKS[track].label} data-track={track}>
+          {stagesOf(track)
+            .filter((stage) => usedStages.has(stage.id))
+            .map((stage) => (
+              <option value={stage.id}>{stage.label}</option>
+            ))}
+        </optgroup>
+      ))}
+    </select>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="m7 10 5 5 5-5"></path>
+    </svg>
+  </label>
+
+  {tags.length > 0 && (
+    <fieldset class="project-filter__tags">
+      <legend class="visually-hidden">Теги</legend>
+      <div class="cluster">
+        {tags.map((tag) => (
+          <button class="chip" type="button" aria-pressed="false" data-tag={tag}>
+            {tag}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  )}
+
+  <div class="project-filter__status">
+    <p class="small muted" data-filter-count aria-live="polite"></p>
+    <button class="project-filter__reset small" type="button" data-filter-reset>
+      Сбросить фильтр
+    </button>
+  </div>
+</form>
+
+<script>
+  import '../scripts/filter';
+</script>
+
+<style>
+  .project-filter {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-21) var(--sp-34);
+    margin-bottom: var(--sp-55);
+  }
+
+  :global(.js) .project-filter {
+    display: flex;
+  }
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
+  /* Сегменты: вдавленный жёлоб, выбранный сегмент — выпуклый */
+  .segments__well {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-5);
+    padding: var(--sp-5);
+    border-radius: var(--r-card);
+    box-shadow:
+      inset 3px 3px 8px var(--shadow-dark),
+      inset -3px -3px 8px var(--shadow-light);
+  }
+
+  .segments__option span {
+    display: flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--sp-8) var(--sp-21);
+    border-radius: var(--r-control);
+    color: var(--text-muted);
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      box-shadow var(--t-144) var(--ease),
+      color var(--t-144) var(--ease);
+  }
+
+  .segments__option input:checked + span {
+    color: var(--blue-text);
+    background: var(--surface);
+    box-shadow:
+      3px 3px 8px var(--shadow-dark),
+      -3px -3px 8px var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .segments__option input:focus-visible + span {
+    outline: 3px solid var(--blue-text);
+    outline-offset: 3px;
+  }
+
+  /* Список стадий: выпуклый контрол с собственным шевроном */
+  .select {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .select select {
+    appearance: none;
+    min-height: 2.75rem;
+    padding: var(--sp-8) var(--sp-55) var(--sp-8) var(--sp-21);
+    border: 0;
+    border-radius: var(--r-control);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow:
+      5px 5px 13px var(--shadow-dark),
+      -5px -5px 13px var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .select svg {
+    position: absolute;
+    right: var(--sp-21);
+    top: 50%;
+    width: 1.3125rem;
+    height: 1.3125rem;
+    translate: 0 -50%;
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+  }
+
+  .project-filter__status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-8) var(--sp-21);
+    flex-basis: 100%;
+  }
+
+  .project-filter__reset {
+    min-height: 2.75rem;
+    color: var(--blue-text);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
+    text-underline-offset: 0.22em;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .segments__option input:not(:checked) + span:hover,
+    .select select:hover {
+      color: var(--blue-text);
+    }
+
+    .project-filter__reset:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  @media (max-width: 479.98px) {
+    .select,
+    .select select {
+      width: 100%;
+    }
+
+    .segments,
+    .segments__well {
+      width: 100%;
+    }
+
+    .segments__option {
+      flex: 1 1 auto;
+    }
+
+    .segments__option span {
+      justify-content: center;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .segments__well,
+    .select select {
+      border: 1px solid ButtonBorder;
+    }
+
+    .segments__option input:checked + span {
+      border: 1px solid Highlight;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .segments__well,
+    .select select {
+      outline: 1px solid var(--text);
+      outline-offset: -1px;
+    }
+  }
+</style>

@@ -1,0 +1,137 @@
+---
+// Хронология проекта: записи по стадиям, от первой к последней.
+import { Image } from 'astro:assets';
+import { stageLabel } from '../data/stages';
+import { formatDate, type Project } from '../lib/projects';
+
+interface Props {
+  items: Project['data']['timeline'];
+  /** Текущая стадия проекта — её запись выделяется */
+  current: Project['data']['stage'];
+}
+
+const { items, current } = Astro.props;
+const sorted = [...items].sort((a, b) => a.date.valueOf() - b.date.valueOf());
+---
+
+<ol class="timeline" role="list">
+  {sorted.map((item) => (
+    <li class:list={['timeline__item reveal', { 'is-current': item.stage === current }]}>
+      <span class="timeline__node" aria-hidden="true" />
+      <div class="timeline__card nm-raised nm-md">
+        <div class="cluster timeline__meta">
+          <span class:list={['chip', { 'chip-now': item.stage === current }]}>{stageLabel(item.stage)}</span>
+          <time class="small muted" datetime={item.date.toISOString().slice(0, 10)}>
+            {formatDate(item.date)}
+          </time>
+        </div>
+        <p>{item.note}</p>
+        {item.images.length > 0 && (
+          <ul class="timeline__images" role="list">
+            {item.images.map((src) => (
+              <li>
+                <Image src={src} alt="" widths={[377, 610, 987]} sizes="(min-width: 768px) 30vw, 92vw" loading="lazy" />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .timeline {
+    --node: 1.3125rem;
+    position: relative;
+    display: grid;
+    gap: var(--sp-34);
+    max-width: var(--container);
+  }
+
+  /* Ось — вдавленная канавка */
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: var(--sp-21);
+    bottom: var(--sp-21);
+    left: calc(var(--node) / 2 - 3px);
+    width: 6px;
+    border-radius: var(--r-round);
+    box-shadow:
+      inset 2px 2px 3px var(--shadow-dark),
+      inset -2px -2px 3px var(--shadow-light);
+  }
+
+  .timeline__item {
+    position: relative;
+    padding-left: calc(var(--node) + var(--sp-21));
+  }
+
+  .timeline__node {
+    position: absolute;
+    left: 0;
+    top: var(--sp-21);
+    width: var(--node);
+    height: var(--node);
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow:
+      3px 3px 8px var(--shadow-dark),
+      -3px -3px 8px var(--shadow-light),
+      inset 1px 1px 0 var(--highlight);
+  }
+
+  .is-current .timeline__node {
+    box-shadow:
+      inset 2px 2px 5px var(--shadow-dark),
+      inset -2px -2px 5px var(--shadow-light),
+      inset 0 0 0 5px var(--surface),
+      inset 0 0 0 1.3125rem var(--fuchsia);
+  }
+
+  .timeline__card {
+    padding: var(--sp-21);
+  }
+
+  .timeline__card > * + * {
+    margin-top: var(--sp-13);
+  }
+
+  .timeline__meta {
+    gap: var(--sp-8) var(--sp-13);
+  }
+
+  .timeline__images {
+    display: grid;
+    gap: var(--sp-13);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  }
+
+  .timeline__images :global(img) {
+    width: 100%;
+    aspect-ratio: 1.618 / 1;
+    object-fit: cover;
+    border-radius: var(--r-control);
+  }
+
+  @media (min-width: 768px) {
+    .timeline__card {
+      padding: var(--sp-34);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .timeline::before {
+      background: CanvasText;
+    }
+
+    .timeline__node {
+      border: 2px solid CanvasText;
+    }
+
+    .is-current .timeline__node {
+      background: Highlight;
+    }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+// Пустое состояние — полноценный экран, а не ошибка: все стадии ещё плоские, ничего не начато.
+import StageTiles from './StageTiles.astro';
+
+interface Props {
+  title: string;
+  heading?: 'h2' | 'h3';
+}
+
+const { title, heading: Heading = 'h2' } = Astro.props;
+---
+
+<div class="empty nm-pressed panel">
+  <div class="golden golden-center">
+    <div class="stack">
+      <Heading class="empty__title">{title}</Heading>
+      <slot />
+    </div>
+    <div class="empty__visual">
+      <StageTiles track="digital" mode="empty" />
+    </div>
+  </div>
+</div>
+
+<style>
+  .empty {
+    border-radius: var(--r-panel);
+  }
+
+  .empty__title {
+    font-size: var(--fs-3);
+  }
+
+  .empty__visual {
+    max-width: 23.5625rem; /* 377 */
+    width: 100%;
+    justify-self: end;
+  }
+
+  @media (max-width: 767.98px) {
+    .empty__visual {
+      justify-self: start;
+      max-width: 14.5625rem; /* 233 */
+    }
+  }
+</style>
